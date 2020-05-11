@@ -19,6 +19,13 @@ class SignInResponse {
     var role: String? = null
 }
 
+
+class userResponse {
+    var username: String? = null
+    var roleId: Number? = null
+    var role: String? = null
+}
+
 class Role {
     var id: Number? = null
     var roleName:  String? = null
@@ -48,16 +55,32 @@ class Material {
 }
 
 class  MaterialInward {
-    var materialId: Number? = null
-    var materialCode: Number = 0
-    var batchNumber: String? = null
     var serialNumber: String? = null
-    var isScrapped: Boolean = false
-    var isInward: Boolean = false
-    var dispatchSlipId: Number? = null
-    var status: Boolean = false
+    var inwardedOn: String? = null
+    var inwardedBy: String? = null
+    var scrappedOn: String? = null
+    var scrappedBy: String? = null
+    var recoveredOn: String? = null
+    var recoveredBy: String? = null
+    var pickedOn: String? = null
+    var pickedBy: String? = null
+    var materialGenericName: String? = null
+    var materialDescription: String? = null
+    var loadedOn: String? = null
+    var loadedBy: String? = null
     var dispatchSlip: DispatchSlip? = null
-    var material: Material? = null
+    var ttat: Ttat? = null
+    var depot: Depo? = null
+//    var materialId: Number? = null
+//    var materialCode: Number = 0
+//    var batchNumber: String? = null
+//    var serialNumber: String? = null
+//    var isScrapped: Boolean = false
+//    var isInward: Boolean = false
+//    var dispatchSlipId: Number? = null
+//    var status: Boolean = false
+//    var dispatchSlip: DispatchSlip? = null
+//    var material: Material? = null
 //    var createdBy: User? = null
 //    var updatedBy: User? = null
     }
@@ -140,7 +163,8 @@ class DispatchSlipRequest {
 }
 
 class Project {
-        var name: String = ""
+    var id: Number? = null
+    var name: String = ""
     var auditors: String = ""
     var start: String = ""
     var end: String = ""
@@ -150,6 +174,11 @@ class Project {
     var updatedBy: String? = null
     var createdAt: String? = null
     var updatdAt: String? = null
+}
+
+class auditProjectItem {
+    var projectId: Number? = null
+    var serialNumber: String? = null
 }
 
 class ProjectItem {
@@ -174,7 +203,10 @@ interface ApiInterface {
     @POST("users/sign_in")
     fun login(@Body signInRequest: SignInRequest): Observable<SignInResponse>
 
-    @GET("materialinwards")
+    @GET("users")
+    fun getUsers(): Observable<Array<userResponse?>>
+
+    @GET("materialtransactions")
     fun getMaterialDetails(@Query("serialNumber")  serialNumber: String): Observable<Array<MaterialInward>>
 
     @GET("dispatchslip")
@@ -195,12 +227,18 @@ interface ApiInterface {
     @POST("dispatchslips/{id}/dispatchsliploadermaterials")
     fun postDispatchSlipLoadedMaterials(@Path("id") id: Int, @Body requestbody: DispatchSlipRequest): Observable<DispatchSlipItemResponse?>
 
-    @GET("/projects/{status}")
-    fun getAuditProjects(@Path("status") status: String): Observable<Array<Project?>>
+//    @GET("/projects/{status}")
+//    fun getAuditProjects(@Path("status") status: String): Observable<Array<Project?>>
+
+    @GET("/projects")
+    fun getAuditProjects(@Query("projectStatus") projectStatus: String): Observable<Array<Project?>>
 
     @GET("/project/{id}/projectitems")
     fun getProjectItems(@Path("id") id: String): Observable<Array<ProjectItem?>>
 
-    @POST("/project/{id}/projectitems")
-    fun postProjectItems(@Path("id") id: String): Observable<Array<ProjectItem?>>
+//    @POST("/project/{id}/projectitems")
+//    fun postProjectItems(@Path("id") id: String): Observable<Array<ProjectItem?>>
+
+    @POST("/projects/projectItems")
+    fun postProjectItems(@Body auditRequestBody: Array<auditProjectItem>): Observable<Array<auditProjectItem?>>
 }

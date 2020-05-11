@@ -1,6 +1,8 @@
 package com.briot.balmerlawrie.implementor.ui.main
 
 import android.app.Application
+import android.content.ContentValues
+import android.graphics.DiscretePathEffect
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -30,6 +32,18 @@ class DispatchSlipLoadingViewModel : ViewModel() {
     var dispatchSlipTruckId: Int = 0
     var totalScannedItems: Int = 0
     var customer: String? = null
+    val signInResponse: LiveData<SignInResponse> = MutableLiveData()
+    val users: LiveData<userResponse?> = MutableLiveData()
+//    var allUsers: LiveData<Array<SignInResponse>> = MutableLiveData()
+
+    var userResponseData: (Array<userResponse?>) = arrayOf(null)
+
+    // var allUsers: MutableLiveData<userResponse> = MutableLiveData()
+    var productCode: String = ""
+    var batchCode: String = ""
+    var serialNumber: String = ""
+    var username: String = ""
+    var password: String = ""
 
     private var appDatabase = AppDatabase.getDatabase(MainApplication.applicationContext())
 
@@ -39,6 +53,10 @@ class DispatchSlipLoadingViewModel : ViewModel() {
     val itemSubmissionSuccessful: LiveData<Boolean> = MutableLiveData()
     val dispatchloadingItems: LiveData<Array<DispatchSlipItem?>> = MutableLiveData()
     private var responseDispatchLoadingItems: Array<DispatchSlipItem?> = arrayOf(null)
+    // private lateinit var DispatchSlipItemToUpdate: DispatchSlipItem
+    val DispatchSlipItemToUpdate: LiveData<Array<DispatchSlipItem?>> = MutableLiveData()
+
+    // MutableLiveData()
     val invalidDispatchloadingItems: Array<DispatchSlipItem?> = arrayOf(null)
     var errorMessage: String = ""
 
@@ -82,9 +100,13 @@ class DispatchSlipLoadingViewModel : ViewModel() {
     private fun updatedListAsPerDatabase(items: Array<DispatchSlipItem?>) {
 
         var dbDao = appDatabase.dispatchSlipLoadingItemDuo()
-        var dbItems = dbDao.getAllDispatchSlipItems(dispatchSlipId)
+        var dbItems = dbDao.getAllDispatchSlipItems(dispatchSlipId) //diff batch nunber items (dbItems)
+//        var differentItems: Array<DispatchSlipItem?> = arrayOf(null)
+        //server items
+         var updatedItems: Array<DispatchSlipItem?> = items.clone()
 
-        var updatedItems: Array<DispatchSlipItem?> = items.clone()
+//        Log.d(TAG, "----b4 add --> "+ updatedItems.size)
+//        Log.d(TAG, "----b4 add --> "+ updatedItems[1])
 
         totalScannedItems = 0
         for (item in updatedItems) {
@@ -101,31 +123,40 @@ class DispatchSlipLoadingViewModel : ViewModel() {
             }
         }
 
-        /*
-//        var differentItems = Array<DispatchSlipItem>()
-
-        for (dbItem in dbItems.value!!.iterator()) {
-            var foundItems = updatedItems.filter {
-                return  (dbItem.batchCode.equals(it?.batchNumber))
+        var checkingItems = updatedItems;
+        for (dbitem in dbItems){
+            var checkStatus = false;
+            var newItem = null;
+            for(item in checkingItems){
+                var checkArguments  = dbitem.serialNumber!!.split("#")
+                if(item!!.materialCode == dbitem.productCode && item.batchNumber == checkArguments[1]){
+                    checkStatus = false
+                    break;
+                }
+                else{
+                    checkStatus = true
+                }
             }
-
-            if (foundItems!!.size == 0) {
-                var item = DispatchSlipItem()
-                item.id = 0
-                item.scannedPacks = 1
-                item.batchNumber = dbItem.batchCode
-                item.materialCode = dbItem.productCode
-                item.dispatchSlipId = dbItem.dispatchSlipId
-                item.numberOfPacks = 1
-                differentItems.add   (item)
-            }
-//            for (item in updatedItems) {
-//                if (item != null) {
-//                    var dbBatchwiseItems = dbDao.getItemsForBatch(dispatchSlipId, item!!.batchNumber)
+            if(checkStatus == true){
+                var checkArguments  = dbitem.serialNumber!!.split("#")
+//                if(dbitem.productCode == item!!.materialCode && checkArguments[1] != item.batchNumber && item.numberOfPacks != item.scannedPacks){
+                    var arguments  = dbitem.serialNumber!!.split("#")
+                    var item = DispatchSlipItem()
+                    item.id = 0
+                    item.scannedPacks = 1
+//                item.batchNumber = dbitem.batchCode
+                    item.batchNumber = arguments[1]
+                    item.materialCode = dbitem.productCode
+                    item.dispatchSlipId = dbitem.dispatchSlipId
+                    item.materialGenericName = dbitem.materialGenericName
+                    item.numberOfPacks = 1
+                    updatedItems += item
+                    totalScannedItems += 1
+//                    break;
 //                }
-//            }
-
-        }*/
+            }
+        }
+//    }
 
         updatedItems.sortWith(compareBy<DispatchSlipItem?> {
             it!!.scannedPacks.toInt() == it!!.numberOfPacks.toInt()
@@ -134,7 +165,6 @@ class DispatchSlipLoadingViewModel : ViewModel() {
         }.thenBy {
             it!!.scannedPacks == 0
         })
-        //
 
         (this.dispatchloadingItems as MutableLiveData<Array<DispatchSlipItem?>>).value = updatedItems
     }
@@ -191,16 +221,25 @@ class DispatchSlipLoadingViewModel : ViewModel() {
         }
     }
 
-
-
     suspend fun addMaterial(materialCode: String, batchNumber: String, serialNumber: String): Boolean {
         val result = responseDispatchLoadingItems.filter {
-            it?.materialCode.equals(materialCode) && it?.batchNumber.equals(batchNumber)
+            it?.materialCode.equals(materialCode)
+//            it?.batchNumber.equals(batchNumber)
         }
-
         if (result.size > 0) {
             updateItemInDatabase(result.first()!!, serialNumber)
         }
+//        else{
+//            Log.d(TAG, "in else to add data")
+//            var itemToUpdate = DispatchSlipItem()
+//            itemToUpdate.batchNumber = batchNumber
+//            itemToUpdate.materialCode = materialCode
+//            itemToUpdate.materialGenericName = "name "+ batchNumber.toString()
+//            itemToUpdate.materialDescription = "desc "+ batchNumber.toString()
+//            itemToUpdate.dispatchSlipId = 7
+//            itemToUpdate.id = 2
+//            updateItemInDatabase(itemToUpdate, serialNumber)
+//        }
         return true
     }
 
@@ -208,8 +247,11 @@ class DispatchSlipLoadingViewModel : ViewModel() {
 
         val userName = PrefRepository.singleInstance.getValueOrDefault(PrefConstants().USER_NAME, "")
 
+        // Log.d(TAG, "item in update "+ item.batchNumber)
+        var argument = serialNumber.split("#")
         var dbItem = DispatchSlipLoadingListItem(
-                batchCode = item.batchNumber,
+//                batchCode = item.batchNumber,
+                batchCode = argument[1],
                 productCode = item.materialCode,
                 materialGenericName = item.materialGenericName,
                 materialDescription = item.materialDescription,
@@ -218,7 +260,6 @@ class DispatchSlipLoadingViewModel : ViewModel() {
                 timeStamp = Date().time,
                 serialNumber = serialNumber,
                 vehicleNumber = dispatchSlipVehicleNumber, id = 0, submitted = 0, submittedOn = 0, user = userName)
-
 
         var dbDao = appDatabase.dispatchSlipLoadingItemDuo()
         dbDao.insert(item = dbItem)
@@ -276,6 +317,7 @@ class DispatchSlipLoadingViewModel : ViewModel() {
                 item.materialCode = dbItem.productCode
                 item.serialNumber = dbItem.serialNumber
                 items.add(item)
+                // Log.d(TAG,"dbItem.productCode-->"+dbItem.productCode)
             }
         }
 
@@ -361,7 +403,52 @@ class DispatchSlipLoadingViewModel : ViewModel() {
                 updatedListAsPerDatabase(responseDispatchLoadingItems)
             }
         }
+    }
 
 
+
+    fun getUsers(){
+        RemoteRepository.singleInstance.getUsers(this::handleUserResponse, this::handleLoginError)
+    }
+
+    private fun handleUserResponse(users: (Array<userResponse?>)) {
+
+        userResponseData = users
+        Log.d(ContentValues.TAG, "item  response----- " + userResponseData)
+//        Log.d(ContentValues.TAG, "item  response1----- " + userResponseData)
+//        Log.d(ContentValues.TAG, "item  handleUserResponse----- " + userResponseData[1]!!.username)
+//        (this.users as MutableLiveData<userResponse?>).value = users
+        (this.users as MutableLiveData<Array<userResponse?>>).value = users
+    }
+
+
+
+    fun loginUser(username: String, password: String) {
+        (networkError as MutableLiveData<Boolean>).value = false
+        RemoteRepository.singleInstance.loginUser(username, password, this::handleLoginResponse, this::handleLoginError)
+    }
+
+    private fun handleLoginResponse(signInResponse: SignInResponse) {
+        (this.signInResponse as MutableLiveData<SignInResponse>).value = signInResponse
+    }
+
+    private fun handleLoginError(error: Throwable) {
+        Log.d(TAG, error.localizedMessage)
+
+        if (error is HttpException) {
+            if (error.code() >= 401) {
+                var msg = error.response()?.errorBody()?.string()
+                if (msg != null && msg.isNotEmpty()) {
+                    errorMessage = msg
+                } else {
+                    errorMessage = error.message()
+                }
+            }
+            (networkError as MutableLiveData<Boolean>).value = true
+        } else if (error is SocketException || error is SocketTimeoutException) {
+            (networkError as MutableLiveData<Boolean>).value = true
+        } else {
+//            (this.user as MutableLiveData<PopulatedUser>).value = invalidUser
+        }
     }
 }

@@ -30,7 +30,7 @@ class AuditProjectsViewModel : ViewModel() {
     }
 
     private fun handleProjectsError(error: Throwable) {
-        Log.d(TAG, error.localizedMessage)
+        Log.d(TAG, "error msg--->"+error.localizedMessage)
 
         if (UiHelper.isNetworkError(error)) {
             (networkError as MutableLiveData<Boolean>).value = true

@@ -1,13 +1,16 @@
 package com.briot.balmerlawrie.implementor.ui.main
 
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.ListPopupWindow
+import androidx.fragment.app.DialogFragment
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -27,15 +30,27 @@ import kotlinx.android.synthetic.main.dispatch_slip_loading_fragment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import com.briot.balmerlawrie.implementor.R
+import com.briot.balmerlawrie.implementor.repository.remote.SignInResponse
 import kotlinx.android.synthetic.main.login_dialog_fragment.view.*
 
-class DispatchSlipLoadingFragment : Fragment() {
+class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
+
+
+    override fun onSuccessfulAdminLogin(productCode: String, batchCode:String, serialNumber:String ) {
+        // UiHelper.showErrorToast(this.activity as AppCompatActivity, "dismissed dialog!")
+        Log.d(TAG, "After success ---->")
+        addItemToList(productCode, batchCode, serialNumber)
+        Log.d(TAG, "After add list ---->")
+
+    }
 
     companion object {
         fun newInstance() = DispatchSlipLoadingFragment()
     }
 
     private lateinit var viewModel: DispatchSlipLoadingViewModel
+    private lateinit var LoginDialog: LoginDialog
+
     private var progress: Progress? = null
     private var oldDispatchSlipItems: Array<DispatchSlipItem?>? = null
     lateinit var recyclerView: RecyclerView
@@ -55,6 +70,9 @@ class DispatchSlipLoadingFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         viewModel = ViewModelProvider(this).get(DispatchSlipLoadingViewModel::class.java)
+
+        // viewModel.getUsers()
+
         (this.activity as AppCompatActivity).setTitle("Loading Dispatch Slip")
 
         if (this.arguments != null) {
@@ -82,6 +100,7 @@ class DispatchSlipLoadingFragment : Fragment() {
                     loading_scanned_count.text = "0/0"
                 } else if (it != oldDispatchSlipItems) {
                     loading_dispatchSlipItems.adapter?.notifyDataSetChanged()
+
                     loading_scanned_count.text = viewModel.totalScannedItems.toString() + "/" + it.size.toString()
                 }
             }
@@ -126,6 +145,17 @@ class DispatchSlipLoadingFragment : Fragment() {
             }
         })
 
+//        viewModel.signInResponse.observe(this, Observer<SignInResponse> {
+//            UiHelper.hideProgress(this.progress)
+//            this.progress = null
+//
+//            if (it != null) {
+//                this.addItemToList(viewModel.productCode, viewModel.batchCode, viewModel.serialNumber)
+//            } else {
+//                UiHelper.showErrorToast(this.activity as AppCompatActivity, "An error has occurred, please try again.");
+//            }
+//        })
+
         loading_materialBarcode.setOnEditorActionListener { _, i, keyEvent ->
             var handled = false
 
@@ -158,6 +188,7 @@ class DispatchSlipLoadingFragment : Fragment() {
                                 this.progress = UiHelper.showProgressIndicator(this.activity as AppCompatActivity, "Please wait")
                                 // prodeed to add the material in database
                                 GlobalScope.launch {
+                                    Log.d(TAG,"inside loading material barcode"+productCode)
                                     viewModel.addMaterial(productCode, batchCode, serialNumber)
                                 }
                             }
@@ -167,7 +198,7 @@ class DispatchSlipLoadingFragment : Fragment() {
                         UiHelper.showErrorToast(this.activity as AppCompatActivity, "Scanned material batch and material is not matching with dispatch slip!")
                         // @dinesh gajjar: get admin permission flow
 
-                        /*var thisObject = this
+                        var thisObject = this
                         AlertDialog.Builder(this.activity as AppCompatActivity, R.style.MyDialogTheme).create().apply {
                             setTitle("Confirm")
                             setMessage("Are you sure you want to load this material from different batch?")
@@ -176,10 +207,11 @@ class DispatchSlipLoadingFragment : Fragment() {
                                 dialog, _ -> dialog.dismiss()
                                 // open another dialog of credentials  to check  if user has valid admin role
                                 // call thisObject.addItemToList(productCode, batchCode, serialNumber)
+                                // thisObject.addItemToList(productCode, batchCode, serialNumber)
                                 thisObject.openLoginDialog(productCode, batchCode, serialNumber)
                             })
                             show()
-                        }*/
+                        }
                     }
                 }
 
@@ -245,12 +277,11 @@ class DispatchSlipLoadingFragment : Fragment() {
     }
 
     fun addItemToList(productCode: String, batchCode:  String, serialNumber: String) {
-        this.progress = UiHelper.showProgressIndicator(this.activity as AppCompatActivity, "Please wait")
 
         if (viewModel.isSameSerialNumber(productCode, batchCode, serialNumber)) {
             UiHelper.showErrorToast(this.activity as AppCompatActivity, "This barcode is already added, please add other item")
         } else {
-            this.progress = UiHelper.showProgressIndicator(this.activity as AppCompatActivity, "Please wait")
+            // this.progress = UiHelper.showProgressIndicator(this.activity as AppCompatActivity, "Please wait")
             // prodeed to add the material in database
             GlobalScope.launch {
                 viewModel.addMaterial(productCode, batchCode, serialNumber)
@@ -259,32 +290,67 @@ class DispatchSlipLoadingFragment : Fragment() {
     }
 
     fun openLoginDialog(productCode: String, batchCode:  String, serialNumber: String) {
+//        viewModel.productCode = productCode
+//        viewModel.batchCode = batchCode
+//        viewModel.serialNumber = serialNumber
+        val dialogFragment = LoginDialog()
+        dialogFragment.loginDialogListener = this
+        dialogFragment.productCode = productCode
+        dialogFragment.batchCode = batchCode
+        dialogFragment.serialNumber = serialNumber
+        viewModel.serialNumber = serialNumber
+        viewModel.batchCode = batchCode
+        viewModel.productCode = productCode
+
+        val ft = this.activity!!.supportFragmentManager.beginTransaction()
+        val prev = this.activity!!.supportFragmentManager.findFragmentByTag("dialog")
+        if (prev != null)
+        {
+            ft.remove(prev)
+        }
+        ft.addToBackStack(null)
+        dialogFragment.show(ft, "dialog")
+//        if(dialogFragment.adminAuthenticated == true){
+//            Log.d(TAG, "in side if to call additem to list-->")
+//            addItemToList(productCode, batchCode, serialNumber)
+//        }
+
+
+//        dialogFragment.onDismiss{
+//            UiHelper.showErrorToast(this.activity as AppCompatActivity, "dismissed dialog!")
+//        }
+//        mAlertDialog.setOnDismissListener({
+//            UiHelper.showErrorToast(this.activity as AppCompatActivity, "dismissed dialog!")
+//        })
+         return;
+
         val mDialogView = LayoutInflater.from(this.context).inflate(R.layout.login_dialog_fragment, null)
         //AlertDialogBuilder
         val mBuilder = AlertDialog.Builder(this.requireContext())
                 .setView(mDialogView)
-                .setTitle("Admin Login")
         //show dialog
         val  mAlertDialog = mBuilder.show()
         (mDialogView as? LoginDialog)?.alertDialog = mAlertDialog
 
-        //login button click of custom layout
-        /*mDialogView.dialogLoginBtn.setOnClickListener {
-            //dismiss dialog
-            mAlertDialog.dismiss()
-            //get text from EditTexts of custom layout
-            val name = mDialogView.dialogNameEt.text.toString()
-            val password = mDialogView.dialogPasswEt.text.toString()
-        }
-        //cancel button click of custom layout
-        mDialogView.dialogCancelBtn.setOnClickListener {
-            //dismiss dialog
-            mAlertDialog.dismiss()
-        }*/
+//         Log.d(TAG, "adminAuthenticated 316 Line-->"+LoginDialog.adminAuthenticated)
+
+        mAlertDialog.setOnDismissListener({
+           //only checking admin Authentication
+            UiHelper.showErrorToast(this.activity as AppCompatActivity, "dismissed dialog!")
+            Log.d(TAG, "LoginDialog.adminAuthenticated -- "+LoginDialog.adminAuthenticated)
+
+//            if(mDialogView.adminAuthenticated == true){
+            if(LoginDialog.adminAuthenticated == true){
+                Log.d(TAG, "in side if to call additem to list-->")
+                addItemToList(productCode,batchCode,serialNumber)
+            }
+        })
     }
 }
 
-open class SimpleDispatchSlipLoadingItemAdapter(private val recyclerView: androidx.recyclerview.widget.RecyclerView, private val dispatchSlipItems: LiveData<Array<DispatchSlipItem?>>, private val viewModel: DispatchSlipLoadingViewModel) : androidx.recyclerview.widget.RecyclerView.Adapter<SimpleDispatchSlipLoadingItemAdapter.ViewHolder>() {
+open class SimpleDispatchSlipLoadingItemAdapter(private val recyclerView: androidx.recyclerview.widget.RecyclerView,
+    private val dispatchSlipItems: LiveData<Array<DispatchSlipItem?>>,
+    private val viewModel: DispatchSlipLoadingViewModel) : androidx.recyclerview.widget.RecyclerView.Adapter<SimpleDispatchSlipLoadingItemAdapter.ViewHolder>() {
 
 //    private var viewModel: DispatchSlipsViewModel = viewModel
 
@@ -380,6 +446,9 @@ open class SimpleDispatchSlipLoadingItemAdapter(private val recyclerView: androi
                 linearLayout.setBackgroundColor(PrefConstants().lightOrangeColor)
             } else if (dispatchSlipItem.scannedPacks.toInt() >= dispatchSlipItem.numberOfPacks.toInt()) {
                 linearLayout.setBackgroundColor(PrefConstants().lightGreenColor)
+            }
+            if (dispatchSlipItem.materialCode == viewModel.productCode && dispatchSlipItem.batchNumber == viewModel.batchCode){
+               linearLayout.setBackgroundColor(PrefConstants().lightYellowColor)
             }
         }
     }

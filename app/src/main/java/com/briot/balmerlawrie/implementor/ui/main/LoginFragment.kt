@@ -93,7 +93,6 @@ class LoginFragment : androidx.fragment.app.Fragment() {
             viewModel.loginUser(username.text.toString(), password.text.toString())
             username.setText("");
             password.setText("");
-
         }
     }
 

@@ -1,11 +1,16 @@
 package com.briot.balmerlawrie.implementor.ui.main
 
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.util.Log
+import android.view.View
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.navigation.Navigation
 import com.briot.balmerlawrie.implementor.MainApplication
+import com.briot.balmerlawrie.implementor.R
 import com.briot.balmerlawrie.implementor.data.AppDatabase
 import com.briot.balmerlawrie.implementor.UiHelper
 import com.briot.balmerlawrie.implementor.data.DBAuditItem
@@ -18,6 +23,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.google.gson.GsonBuilder
+import kotlinx.android.synthetic.main.home_fragment.*
 
 class AuditProjectListViewModel : ViewModel() {
     // TODO: Implement the ViewModel
@@ -49,13 +55,12 @@ class AuditProjectListViewModel : ViewModel() {
             Log.d(TAG,"inside audit resp->"+items!!.serialNumber)
             deleteSelectedAuditFromDB(items!!.serialNumber!!)
         }
+        //redirect to back screen audit list
         GlobalScope.launch {
             withContext(Dispatchers.Main) {
                 (itemSubmissionSuccessful as MutableLiveData<Boolean>).value = true
             }
         }
-
-
     }
 
     fun loadAuditProjects(status: String) {

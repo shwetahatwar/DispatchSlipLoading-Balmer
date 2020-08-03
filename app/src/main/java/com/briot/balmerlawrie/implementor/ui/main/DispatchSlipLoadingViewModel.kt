@@ -390,8 +390,6 @@ class DispatchSlipLoadingViewModel : ViewModel() {
         }
     }
 
-
-
     fun getUsers(){
         RemoteRepository.singleInstance.getUsers(this::handleUserResponse, this::handleLoginError)
     }

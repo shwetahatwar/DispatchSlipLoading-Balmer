@@ -27,6 +27,8 @@ import kotlinx.android.synthetic.main.audit_project_list_fragment.*
 import kotlinx.android.synthetic.main.dispatch_slips_fragment.*
 import kotlinx.android.synthetic.main.home_fragment.*
 import kotlinx.android.synthetic.main.projects_row_layout.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 class AuditProjectsFragment : Fragment() {
 
@@ -123,9 +125,14 @@ open class SimpleProjectListAdapter(private val recyclerView: androidx.recyclerv
 
         fun bind() {
             val project = projects.value!![adapterPosition]!!
-            projecNameValue.text = project.name
+            projecNameValue.text = project.name?.let { timeConverter(it.toLong()) }
             auditor.text = project.auditors
             projectStatus.text = project.projectStatus
+        }
+        fun timeConverter(s: Long): String? {
+            val date1 = SimpleDateFormat("dd/MM/yyyy hh:mm:ss a").format(Date(s))
+            println("date-->"+date1)
+            return date1
         }
     }
 }

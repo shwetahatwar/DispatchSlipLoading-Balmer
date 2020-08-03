@@ -1,10 +1,8 @@
 package com.briot.balmerlawrie.implementor.ui.main
 
-import androidx.lifecycle.Observer
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -12,18 +10,21 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.briot.balmerlawrie.implementor.MainActivity
 import com.briot.balmerlawrie.implementor.R
 import com.briot.balmerlawrie.implementor.UiHelper
 import com.briot.balmerlawrie.implementor.repository.remote.DispatchSlip
-import com.briot.balmerlawrie.implementor.repository.remote.Material
 import com.briot.balmerlawrie.implementor.repository.remote.MaterialInward
 import com.pascalwelsch.arrayadapter.ArrayAdapter
 import io.github.pierry.progress.Progress
 import kotlinx.android.synthetic.main.material_details_row.view.*
 import kotlinx.android.synthetic.main.material_details_scan_fragment.*
+import java.security.Timestamp
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class MaterialDetailsScanFragment : Fragment() {
@@ -136,25 +137,7 @@ class MaterialDetailsScanFragment : Fragment() {
 class MaterialItemsAdapter(val context: Context) : ArrayAdapter<MaterialInward, MaterialItemsAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(itemView) {
-
-//        val materialBarcode: TextView
-//        val materialType: TextView
-//        val materialProductCode: TextView
-//        val materialProductName: TextView
-//        val materialGenericName: TextView
-//        var materialUOM: TextView
-//        val materialGrossWeight: TextView
-//        val materialTareWeight: TextView
-//        val materialNetWeight: TextView
-//        val materialBatchCode: TextView
-//        val materialInwardDate: TextView
-//        val materialDispatchSlipNumber: TextView
-//        val materialPicker: TextView
-//        val materialLoader: TextView
-//        val materialDispatchTruckNumber: TextView
-//        val depot: TextView
-//        var materialScrapped: TextView
-
+        val status: TextView
         val materialBarcode: TextView
         val materialGenericName: TextView
         val materialDescription: TextView
@@ -172,7 +155,9 @@ class MaterialItemsAdapter(val context: Context) : ArrayAdapter<MaterialInward, 
         val materialDispatchTruckNumber: TextView
         val depot: TextView
 
+
         init {
+            status = itemView.material_scrap_value as TextView
             materialBarcode = itemView.material_serialnumber_value as TextView
             materialGenericName = itemView.material_generic_name_value as TextView
             materialDescription = itemView.material_description_value as TextView
@@ -205,11 +190,11 @@ class MaterialItemsAdapter(val context: Context) : ArrayAdapter<MaterialInward, 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
         val item = getItem(position) as MaterialInward
-
+        holder.status.text = item.status
         holder.materialBarcode.text = item.serialNumber
         holder.materialGenericName.text = item.materialGenericName
         holder.materialDescription.text = item.materialDescription
-        holder.inwardedOn.text = item.inwardedOn
+        holder.inwardedOn.text = item.inwardedOn?.let { timeConverter(it.toLong()) }
         holder.inwardedBy.text = item.inwardedBy
         holder.scrappedOn.text = item.scrappedOn
         holder.scrappedBy.text = item.scrappedBy
@@ -217,42 +202,10 @@ class MaterialItemsAdapter(val context: Context) : ArrayAdapter<MaterialInward, 
         holder.recoveredBy.text = item.recoveredBy
         holder.pickedOn.text = item.pickedOn
         holder.pickedBy.text = item.pickedBy
-        holder.loadedOn.text = item.loadedOn
+        holder.loadedOn.text = item.loadedOn?.let { timeConverter(it.toLong()) }
         holder.loadedBy.text = item.loadedBy
-//        holder.materialBarcode.text = item.serialNumber
-//        holder.materialBatchCode.text = item.batchNumber
-//        if(item.isScrapped == true) {
-//            holder.materialScrapped.text = "Scrapped"
-//        } else {
-//            holder.materialScrapped.text = "Active"
-//        }
-
-//        if (item.materialId != null) {
-//            holder.materialType.text = item.material!!.materialType
-//            holder.materialProductCode.text = item.material!!.materialCode
-//            holder.materialProductName.text = item.material!!.materialDescription
-//            holder.materialGenericName.text = item.material!!.genericName
-//            holder.materialUOM.text = item.material!!.UOM
-//            holder.materialGrossWeight.text = item.material!!.grossWeight
-//            holder.materialTareWeight.text = item.material!!.tareWeight
-//            holder.materialNetWeight.text = item.material!!.netWeight
-//        }
-
-//        holder.materialInwardDate.text = item.
-
         if (item.dispatchSlip != null) {
-//            holder.materialPicker.text = item.dispatchSlip!!.toString()
-//            holder.materialLoader.text = item.dispatchSlipId!!.toString()
-
             holder.materialDispatchSlipNumber.text = item.dispatchSlip!!.dispatchSlipNumber
-
-//            if  (item.dispatchSlip!!.truckId != null) {
-//                holder.materialDispatchTruckNumber.text = item.dispatchSlip!!.ttat!!.truckNumber
-//            }
-//
-//            if (item.dispatchSlip!!.depoId != null) {
-//                holder.depot.text = item.dispatchSlip!!.depot!!.name
-//            }
         }
         if(item.ttat != null){
             holder.materialDispatchTruckNumber.text = item.ttat!!.truckNumber
@@ -260,6 +213,12 @@ class MaterialItemsAdapter(val context: Context) : ArrayAdapter<MaterialInward, 
         if(item.depot != null){
             holder.depot.text = item.depot!!.name
         }
+    }
+
+    fun timeConverter(s: Long): String? {
+        val date1 = SimpleDateFormat("dd/MM/yyyy hh:mm:ss a").format(Date(s))
+        println("date-->"+date1)
+        return date1
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

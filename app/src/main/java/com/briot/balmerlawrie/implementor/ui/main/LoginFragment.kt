@@ -64,6 +64,7 @@ class LoginFragment : androidx.fragment.app.Fragment() {
             } else {
                 UiHelper.showErrorToast(this.activity as AppCompatActivity, "An error has occurred, please try again.");
             }
+            username.requestFocus()
 
         })
 
@@ -93,6 +94,7 @@ class LoginFragment : androidx.fragment.app.Fragment() {
             viewModel.loginUser(username.text.toString(), password.text.toString())
             username.setText("");
             password.setText("");
+            username.requestFocus()
         }
     }
 

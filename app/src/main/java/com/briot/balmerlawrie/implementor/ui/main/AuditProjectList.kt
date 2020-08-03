@@ -172,7 +172,7 @@ class AuditProjectList : Fragment() {
             }
             if (auditProjectItems.size == 0){
                 UiHelper.showErrorToast(this.activity as AppCompatActivity,
-                        "Items not avialable")
+                        "Items not availabel")
             } else {
                 viewModel.updateAuditProjects(auditProjectItems)
             }

@@ -71,6 +71,7 @@ class  MaterialInward {
     var dispatchSlip: DispatchSlip? = null
     var ttat: Ttat? = null
     var depot: Depo? = null
+    var status: String? = null
 //    var materialId: Number? = null
 //    var materialCode: Number = 0
 //    var batchNumber: String? = null

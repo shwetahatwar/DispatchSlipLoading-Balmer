@@ -1,5 +1,4 @@
 package com.briot.balmerlawrie.implementor.ui.main
-
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.graphics.Color
@@ -19,30 +18,21 @@ import com.briot.balmerlawrie.implementor.BuildConfig
 import com.briot.balmerlawrie.implementor.UiHelper
 import com.briot.balmerlawrie.implementor.repository.local.PrefConstants
 import com.briot.balmerlawrie.implementor.repository.local.PrefRepository
-
-
 class HomeFragment : androidx.fragment.app.Fragment() {
-
     companion object {
         fun newInstance() = HomeFragment()
     }
-
     private lateinit var viewModel: HomeViewModel
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.home_fragment, container, false)
     }
-
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
-
         (this.activity as AppCompatActivity).setTitle("Home")
-
         val roleName = PrefRepository.singleInstance.getValueOrDefault(PrefConstants().ROLE_NAME, "")
         val roleId = PrefRepository.singleInstance.getValueOrDefault(PrefConstants().ROLE_ID, "0").toInt()
-
         viewStatus(true)
         var disableTextColor = Color.parseColor("#FFa3a3a3")
         if (roleName.toLowerCase().equals("admin")) {
@@ -50,61 +40,42 @@ class HomeFragment : androidx.fragment.app.Fragment() {
             materialInward.setTextColor(disableTextColor)
         } else if (roleName.toLowerCase().equals("picker")) {
             materialDetails.isEnabled = true
-
             materialInward.isEnabled = false
             materialInward.setTextColor(disableTextColor)
-
             materialPicking.isEnabled = true
-
             materialLoading.isEnabled = false
             materialLoading.setTextColor(disableTextColor)
-
-            auditProject.isEnabled = false
-            auditProject.setTextColor(disableTextColor)
-
+            auditProject.isEnabled = true
+//            auditProject.setTextColor(disableTextColor)
         } else if (roleName.toLowerCase().equals("loader")) {
             materialDetails.isEnabled = true
-
             materialInward.isEnabled = false
             materialInward.setTextColor(disableTextColor)
-
             materialPicking.isEnabled = false
             materialPicking.setTextColor(disableTextColor)
-
             materialLoading.isEnabled = true
-
-            auditProject.isEnabled = false
-            auditProject.setTextColor(disableTextColor)
-
+            auditProject.isEnabled = true
+//            auditProject.setTextColor(disableTextColor)
         } else if (roleName.toLowerCase().equals("auditor")) {
             materialDetails.isEnabled = true
-
             materialInward.isEnabled = false
             materialInward.setTextColor(disableTextColor)
-
             materialPicking.isEnabled = false
             materialPicking.setTextColor(disableTextColor)
-
             materialLoading.isEnabled = false
             materialLoading.setTextColor(disableTextColor)
-
             auditProject.isEnabled = true
         } else {
             materialDetails.isEnabled = true
-
             materialInward.isEnabled = false
             materialInward.setTextColor(disableTextColor)
-
             materialPicking.isEnabled = false
             materialPicking.setTextColor(disableTextColor)
-
             materialLoading.isEnabled = false
             materialLoading.setTextColor(disableTextColor)
-
             auditProject.isEnabled = false
             auditProject.setTextColor(disableTextColor)
         }
-
         /*this.viewModel.roleAccessRelations.observe(this, Observer<Array<RoleAccessRelation>> {
             if (it != null) {
                 val roleName = PrefRepository.singleInstance.getValueOrDefault(PrefConstants().ROLE_NAME, "")
@@ -124,22 +95,16 @@ class HomeFragment : androidx.fragment.app.Fragment() {
                             } else if (item.accessId?.uri?.toLowerCase().equals("MaintenanceTransaction".toLowerCase())) {
                                 machineMaintenance.visibility = View.VISIBLE
                             }
-
                         }
                     }
                 }
-
             }
-
         })*/
-
 //        this.viewModel.loadRoleAccess()
         versiontext.text = "app version " + BuildConfig.VERSION_NAME;
-
         // hide all options initially,  enable it as per role only
         viewStatus(true)
-
-            materialDetails.setOnClickListener { Navigation.findNavController(it).navigate(R.id.action_homeFragment_to_materialDetailsScanFragment) }
+        materialDetails.setOnClickListener { Navigation.findNavController(it).navigate(R.id.action_homeFragment_to_materialDetailsScanFragment) }
         materialInward.setOnClickListener {
             UiHelper.showWarningToast(this.activity as AppCompatActivity, "This feature is disabled for now as per request")
 //            @dinesh gajjar; kept out of scope for now on client request
@@ -149,7 +114,6 @@ class HomeFragment : androidx.fragment.app.Fragment() {
         materialLoading.setOnClickListener { Navigation.findNavController(it).navigate(R.id.action_homeFragment_to_dispatchSlipsFragment) }
         auditProject.setOnClickListener { Navigation.findNavController(it).navigate(R.id.action_homeFragment_to_auditProjectsFragment) }
     }
-
     fun viewStatus( show: Boolean) {
         if (show) {
             materialDetails.visibility = View.VISIBLE

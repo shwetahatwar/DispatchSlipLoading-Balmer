@@ -194,15 +194,48 @@ class MaterialItemsAdapter(val context: Context) : ArrayAdapter<MaterialInward, 
         holder.materialBarcode.text = item.serialNumber
         holder.materialGenericName.text = item.materialGenericName
         holder.materialDescription.text = item.materialDescription
-        holder.inwardedOn.text = item.inwardedOn?.let { timeConverter(it.toLong()) }
+
+        if (item.inwardedOn != null && item.inwardedOn != "NA"){
+            holder.inwardedOn.text = item.inwardedOn?.let { timeConverter(it.toLong()) }
+        }else{
+            item.inwardedOn = "NA"
+        }
+
         holder.inwardedBy.text = item.inwardedBy
-        holder.scrappedOn.text = item.scrappedOn
+
+        if (item.scrappedOn != null && item.scrappedOn != "NA"){
+            holder.scrappedOn.text = item.scrappedOn?.let { timeConverter(it.toLong()) }
+        }else{
+            item.scrappedOn = "NA"
+        }
+
+
         holder.scrappedBy.text = item.scrappedBy
-        holder.recoveredOn.text = item.recoveredOn
+
+
+        if (item.recoveredOn != null && item.recoveredOn != "NA"){
+            holder.recoveredOn.text = item.recoveredOn?.let { timeConverter(it.toLong()) }
+        }else{
+            item.recoveredOn = "NA"
+        }
+
         holder.recoveredBy.text = item.recoveredBy
-        holder.pickedOn.text = item.pickedOn
+
+
+        if (item.pickedOn != null && item.pickedOn != "NA"){
+            holder.pickedOn.text = item.pickedOn?.let { timeConverter(it.toLong()) }
+        }else{
+            item.pickedOn = "NA"
+        }
+
         holder.pickedBy.text = item.pickedBy
-        holder.loadedOn.text = item.loadedOn?.let { timeConverter(it.toLong()) }
+
+        if (item.loadedOn != null && item.loadedOn != "NA"){
+            holder.loadedOn.text = item.loadedOn?.let { timeConverter(it.toLong()) }
+        }else{
+            item.loadedOn = "NA"
+        }
+
         holder.loadedBy.text = item.loadedBy
         if (item.dispatchSlip != null) {
             holder.materialDispatchSlipNumber.text = item.dispatchSlip!!.dispatchSlipNumber

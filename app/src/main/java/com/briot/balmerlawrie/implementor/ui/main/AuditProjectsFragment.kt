@@ -125,14 +125,9 @@ open class SimpleProjectListAdapter(private val recyclerView: androidx.recyclerv
 
         fun bind() {
             val project = projects.value!![adapterPosition]!!
-            projecNameValue.text = project.name?.let { timeConverter(it.toLong()) }
+            projecNameValue.text = project.name
             auditor.text = project.auditors
             projectStatus.text = project.projectStatus
-        }
-        fun timeConverter(s: Long): String? {
-            val date1 = SimpleDateFormat("dd/MM/yyyy hh:mm:ss a").format(Date(s))
-            println("date-->"+date1)
-            return date1
         }
     }
 }

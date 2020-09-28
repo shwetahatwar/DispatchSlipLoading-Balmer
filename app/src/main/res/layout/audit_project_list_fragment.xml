@@ -47,6 +47,33 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@color/listCellBackgroundColor"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/audit_count_label"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:paddingRight="5dp"
+                android:text="Count:"
+                android:textAlignment="textEnd" />
+
+            <TextView
+                android:id="@+id/audit_count_value"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="#afeeee"
+                android:paddingLeft="3dp"
+                android:paddingRight="3dp"
+                android:text="0"
+                android:textAlignment="textEnd" />
+        </LinearLayout>
+
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/auditprojects_projectlist"

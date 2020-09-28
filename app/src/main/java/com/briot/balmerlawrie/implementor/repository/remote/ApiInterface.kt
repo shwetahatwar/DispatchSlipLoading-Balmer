@@ -187,6 +187,7 @@ class auditProjectList {
     var serialNumber: String? = null
     var batchCode : String? = null
     var productCode: String? = null
+    var timestamp: Long? = null
 }
 //class auditProjectList(var serialNumber: String?,
 //                       var batchCode : String?,

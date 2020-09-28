@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.google.gson.GsonBuilder
 import kotlinx.android.synthetic.main.home_fragment.*
+import java.util.*
 
 class AuditProjectListViewModel : ViewModel() {
     // TODO: Implement the ViewModel
@@ -36,6 +37,7 @@ class AuditProjectListViewModel : ViewModel() {
     val networkError: LiveData<Boolean> = MutableLiveData()
     val projects: LiveData<Array<Project?>> = MutableLiveData()
     val itemSubmissionSuccessful: LiveData<Boolean> = MutableLiveData()
+    val totalScannedItem: LiveData<Number> = MutableLiveData()
 
     //    val auditProjectListItems: Array<auditProjectList?> = arrayOf(null)
     val auditProjectListItems: LiveData<Array<auditProjectList?>> = MutableLiveData()
@@ -107,6 +109,7 @@ class AuditProjectListViewModel : ViewModel() {
         auditProjectObj.serialNumber = serialNumber
         auditProjectObj.projectId = projectId
 
+
         updateItemInDatabase(auditProjectObj)
         return true
     }
@@ -117,7 +120,9 @@ class AuditProjectListViewModel : ViewModel() {
                 batchCode = item.batchCode,
                 productCode = item.productCode,
                 serialNumber = item.serialNumber,
-                projectId = item.projectId)
+                projectId = item.projectId,
+                timeStamp = Date().time
+        )
         var dbDao = appDatabase.auditListItemDuo()
 //        Log.d(TAG,"dbitem --> "+dbItem)
         try {
@@ -146,6 +151,8 @@ class AuditProjectListViewModel : ViewModel() {
             updatedItems += item
         }
 //        Log.d(TAG, "updatedItems size-->"+updatedItems.size)
+        (this.totalScannedItem as MutableLiveData<Number>).value = dbItems.size
+        updatedItems.sortByDescending { it?.timestamp}
         (this.auditProjectListItems as MutableLiveData<Array<auditProjectList?>>).value = updatedItems
     }
 

@@ -38,6 +38,10 @@ import com.google.gson.GsonBuilder
 import io.github.pierry.progress.Progress
 import kotlinx.android.synthetic.main.dispatch_picking_list_fragment.*
 import kotlinx.coroutines.*
+import java.security.Timestamp
+
+
+
 class AuditProjectList : Fragment() {
     companion object {
         fun newInstance() = AuditProjectList()
@@ -66,13 +70,15 @@ class AuditProjectList : Fragment() {
             viewModel.projectId = this.arguments!!.getInt("projectId")
         }
         // Log.d(TAG, "viewModelAudit -->"+viewModel.projectId)
+
+        audit_count_value.text = viewModel.totalScannedItem.value.toString()
         viewModel.updatedListAsPerDatabase(viewModel.projectId)
         audit_materialBarcode.setOnEditorActionListener { _, i, keyEvent ->
-            var handled = false
-            if(checkVariable == false){
-                if ((audit_materialBarcode.text != null && audit_materialBarcode.text!!.isNotEmpty()) && i == EditorInfo.IME_ACTION_DONE
-                        || (keyEvent != null && (keyEvent.keyCode == KeyEvent.KEYCODE_ENTER || keyEvent.keyCode == KeyEvent.KEYCODE_TAB)
-                                && keyEvent.action == KeyEvent.ACTION_DOWN)){
+                    var handled = false
+                    if(checkVariable == false){
+                        if ((audit_materialBarcode.text != null && audit_materialBarcode.text!!.isNotEmpty()) && i == EditorInfo.IME_ACTION_DONE
+                                || (keyEvent != null && (keyEvent.keyCode == KeyEvent.KEYCODE_ENTER || keyEvent.keyCode == KeyEvent.KEYCODE_TAB)
+                                        && keyEvent.action == KeyEvent.ACTION_DOWN)){
                     checkVariable = true;
                     viewModel.serialNumber = audit_materialBarcode.getText().toString()
                     var thisObject = this
@@ -117,12 +123,20 @@ class AuditProjectList : Fragment() {
             recyclerView.adapter = SimpleAuditItemAdapter(recyclerView, viewModel.auditProjectListItems, viewModel)
             handled
         }
+
+        viewModel.totalScannedItem.observe(viewLifecycleOwner, Observer<Number> {
+            if (it != null) {
+                audit_count_value.text = viewModel.totalScannedItem.value.toString()
+            }
+        })
+
         audit_scanButton.setOnClickListener {
             viewModel.serialNumber = audit_materialBarcode.getText().toString()
             var thisObject = this
             var value = audit_materialBarcode.text!!.toString().trim()
             var arguments = value.split("#")
             var found: Boolean = true
+
             if (arguments.size < 3 || arguments[0].length == 0 || arguments[1].length == 0 || arguments[2].length == 0) {
                 UiHelper.showErrorToast(this.activity as AppCompatActivity, "Please Enter barcode")
             } else{

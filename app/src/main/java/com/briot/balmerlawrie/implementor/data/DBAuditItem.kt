@@ -14,7 +14,8 @@ public data class DBAuditItem(
     @ColumnInfo(name = "serialNumber") val serialNumber: String?,
     @ColumnInfo(name = "batchCode") val batchCode: String?,
     @ColumnInfo(name = "productCode") val productCode: String?,
-    @ColumnInfo(name = "projectId") val projectId: Int  ?
+    @ColumnInfo(name = "projectId") val projectId: Int  ?,
+    @ColumnInfo(name = "timestamp") val timeStamp: Long
 
 
 //    @ColumnInfo(name = "materialGenericName") val materialGenericName: String?,

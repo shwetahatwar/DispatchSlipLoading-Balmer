@@ -131,8 +131,6 @@ class DispatchPickingListDetailsFragment : Fragment() {
             }
         })
 
-
-
         picking_materialBarcode.setOnEditorActionListener { _, i, keyEvent ->
             var handled = false
             if ((picking_materialBarcode.text != null && picking_materialBarcode.text!!.isNotEmpty()) && i == EditorInfo.IME_ACTION_DONE
@@ -289,6 +287,7 @@ open class SimpleDispatchSlipPickingItemAdapter(private val recyclerView: androi
                 return@setOnClickListener
             }
 
+
             val list = mutableListOf<String>()
             var dbItems = viewModel.getItemsOfSameBatchProductCode(dispatchSlipItem.batchNumber!!,
                     dispatchSlipItem.materialCode!!)
@@ -298,7 +297,6 @@ open class SimpleDispatchSlipPickingItemAdapter(private val recyclerView: androi
                     list.add(item)
                 }
             }
-
 //    override fun onBindViewHolder(holder: SimpleDispatchSlipLoadingItemAdapter.ViewHolder, position: Int) {
 //        holder.bind()
 //

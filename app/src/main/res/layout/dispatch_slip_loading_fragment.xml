@@ -51,6 +51,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:orientation="horizontal"
             android:background="@color/listCellBackgroundColor">
 
             <TextView
@@ -62,11 +63,30 @@
 
             <TextView
                 android:id="@+id/loading_dispatchListCustomer"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="NA"
                 android:textSize="14sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/countLable"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:paddingRight="5dp"
+                android:text="Count:"
+                android:textAlignment="textEnd" />
+
+            <TextView
+                android:id="@+id/countValue"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@android:color/holo_blue_bright"
+                android:paddingLeft="3dp"
+                android:paddingRight="3dp"
+                android:text="0"
+                android:textAlignment="textEnd" />
         </LinearLayout>
 
         <LinearLayout

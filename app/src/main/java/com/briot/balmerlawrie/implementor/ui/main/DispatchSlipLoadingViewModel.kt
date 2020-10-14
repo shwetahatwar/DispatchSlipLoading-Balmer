@@ -30,6 +30,7 @@ class DispatchSlipLoadingViewModel : ViewModel() {
     var dispatchSlipStatus: String? = ""
     var userId: Int = 0
     var dispatchSlipTruckId: Int = 0
+    var totalCount: Int? = 0
     var totalScannedItems: Int = 0
     var customer: String? = null
     val signInResponse: LiveData<SignInResponse> = MutableLiveData()
@@ -105,6 +106,7 @@ class DispatchSlipLoadingViewModel : ViewModel() {
         //server items
          var updatedItems: Array<DispatchSlipItem?> = items.clone()
         totalScannedItems = 0
+        totalCount = dbItems.size
         for (item in updatedItems) {
             if (item != null) {
                 var count = dbDao.getCountForBatchMaterialCode(

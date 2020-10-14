@@ -100,7 +100,7 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                     loading_scanned_count.text = "0/0"
                 } else if (it != oldDispatchSlipItems) {
                     loading_dispatchSlipItems.adapter?.notifyDataSetChanged()
-
+                    countValue.text = viewModel.totalCount.toString()
                     loading_scanned_count.text = viewModel.totalScannedItems.toString() + "/" + it.size.toString()
                 }
             }

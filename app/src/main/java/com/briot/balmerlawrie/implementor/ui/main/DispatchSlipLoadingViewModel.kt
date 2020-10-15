@@ -30,7 +30,8 @@ class DispatchSlipLoadingViewModel : ViewModel() {
     var dispatchSlipStatus: String? = ""
     var userId: Int = 0
     var dispatchSlipTruckId: Int = 0
-    var totalCount: Int? = 0
+    var totalItemScannedCount: Int? = 0
+    var totalItemCount: Int? = 0
     var totalScannedItems: Int = 0
     var customer: String? = null
     val signInResponse: LiveData<SignInResponse> = MutableLiveData()
@@ -70,6 +71,11 @@ class DispatchSlipLoadingViewModel : ViewModel() {
 
     private fun handleDispatchLoadingItemsResponse(dispatchSlipItems: Array<DispatchSlipItem?>) {
         Log.d(TAG, "successful dispatch loading items details" + dispatchSlipItems.toString())
+        totalItemCount = 0
+        for (i in dispatchSlipItems){
+            totalItemCount = totalItemCount!! + i?.numberOfPacks!!.toInt()
+        }
+
 
         responseDispatchLoadingItems = dispatchSlipItems
         updatedListAsPerDatabase(responseDispatchLoadingItems)
@@ -106,7 +112,7 @@ class DispatchSlipLoadingViewModel : ViewModel() {
         //server items
          var updatedItems: Array<DispatchSlipItem?> = items.clone()
         totalScannedItems = 0
-        totalCount = dbItems.size
+        totalItemScannedCount = dbItems.size
         for (item in updatedItems) {
             if (item != null) {
                 var count = dbDao.getCountForBatchMaterialCode(

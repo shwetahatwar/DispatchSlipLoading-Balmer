@@ -8,11 +8,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.lifecycle.LiveData
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,6 +18,8 @@ import android.text.Editable
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.navigation.Navigation
 import com.briot.balmerlawrie.implementor.R
 import com.briot.balmerlawrie.implementor.UiHelper
@@ -65,17 +63,21 @@ class AuditProjectList : Fragment() {
         viewModel = ViewModelProviders.of(this).get(AuditProjectListViewModel::class.java)
 //        viewModelAudit = ViewModelProviders.of(this).get(AuditProjectsViewModel::class.java)
         viewModel.loadAuditProjects("In Progress")
-        audit_materialBarcode.requestFocus()
+
+        val imm = activity!!.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view!!.windowToken, 0)
+
         if (this.arguments != null) {
             viewModel.projectId = this.arguments!!.getInt("projectId")
         }
         // Log.d(TAG, "viewModelAudit -->"+viewModel.projectId)
-
+        audit_materialBarcode.requestFocus()
         audit_count_value.text = viewModel.totalScannedItem.value.toString()
         viewModel.updatedListAsPerDatabase(viewModel.projectId)
+
         audit_materialBarcode.setOnEditorActionListener { _, i, keyEvent ->
                     var handled = false
-                    if(checkVariable == false){
+                  //  if(checkVariable == false){
                         if ((audit_materialBarcode.text != null && audit_materialBarcode.text!!.isNotEmpty()) && i == EditorInfo.IME_ACTION_DONE
                                 || (keyEvent != null && (keyEvent.keyCode == KeyEvent.KEYCODE_ENTER || keyEvent.keyCode == KeyEvent.KEYCODE_TAB)
                                         && keyEvent.action == KeyEvent.ACTION_DOWN)){
@@ -90,7 +92,7 @@ class AuditProjectList : Fragment() {
                     } else{
                         var materialBarcode = arguments[0].toString()
                         var productCode = arguments[1].toString()
-                        var serialNumber = value
+                        var serialNumber = arguments[0] +"#"+arguments[1]+"#"+arguments[2]
                         for (auditItem in viewModel.auditProjectListItems!!.value!!){
                             if (auditItem!!.serialNumber == serialNumber && auditItem!!.batchCode == productCode && auditItem.productCode == materialBarcode){
                                 UiHelper.showErrorToast(this.activity as AppCompatActivity, "Already scanned")
@@ -106,21 +108,22 @@ class AuditProjectList : Fragment() {
                                 UiHelper.hideProgress(progress);
                                 withContext(Dispatchers.Main){
                                     recyclerView.adapter = SimpleAuditItemAdapter(recyclerView, viewModel.auditProjectListItems, viewModel)
+
                                 }
                             }
                         }
 //                        recyclerView.adapter = SimpleAuditItemAdapter(recyclerView, viewModel.auditProjectListItems, viewModel)
                     }
-                    audit_materialBarcode.text?.clear()
-                    audit_materialBarcode.requestFocus()
+                            audit_materialBarcode.requestFocus()
+                            audit_materialBarcode.text?.clear()
                     handled = true
                 }
-            }
-            else{
-                checkVariable = false
-                handled = true
-            }
-            recyclerView.adapter = SimpleAuditItemAdapter(recyclerView, viewModel.auditProjectListItems, viewModel)
+//            }
+//            else{
+//                checkVariable = false
+//                handled = true
+//            }
+           // recyclerView.adapter = SimpleAuditItemAdapter(recyclerView, viewModel.auditProjectListItems, viewModel)
             handled
         }
 
@@ -142,11 +145,12 @@ class AuditProjectList : Fragment() {
             } else{
                 var materialBarcode = arguments[0].toString()
                 var productCode = arguments[1].toString()
-                var serialNumber = value
+                var serialNumber = arguments[0] +"#"+arguments[1]+"#"+arguments[2]
                 for (auditItem in viewModel.auditProjectListItems!!.value!!){
                     if (auditItem!!.serialNumber == serialNumber && auditItem!!.batchCode == productCode && auditItem.productCode == materialBarcode){
                         UiHelper.showErrorToast(this.activity as AppCompatActivity, "Already scanned")
                         found = false
+                        audit_materialBarcode.requestFocus()
                         break
                     }
                 }
@@ -157,11 +161,13 @@ class AuditProjectList : Fragment() {
                         UiHelper.hideProgress(progress);
                         withContext(Dispatchers.Main){
                             recyclerView.adapter = SimpleAuditItemAdapter(recyclerView, viewModel.auditProjectListItems, viewModel)
+                            audit_materialBarcode.requestFocus()
                         }
                     }
                 }
                 //recyclerView.adapter = SimpleAuditItemAdapter(recyclerView, viewModel.auditProjectListItems, viewModel)
             }
+            audit_materialBarcode.requestFocus()
             audit_materialBarcode.text?.clear()
         };
         viewModel.itemSubmissionSuccessful.observe(viewLifecycleOwner, Observer<Boolean> {
@@ -188,7 +194,20 @@ class AuditProjectList : Fragment() {
                 UiHelper.showErrorToast(this.activity as AppCompatActivity,
                         "Items not availabel")
             } else {
-                viewModel.updateAuditProjects(auditProjectItems)
+                AlertDialog.Builder(this.activity as AppCompatActivity, R.style.MyDialogTheme).create().apply {
+                    setTitle(" Confirm")
+                    setMessage("Are you sure you want to submit scanned materials.")
+                    setButton(AlertDialog.BUTTON_POSITIVE, "Yes") { dialog, _ ->
+                        dialog.dismiss()
+                        viewModel.updateAuditProjects(auditProjectItems)
+                    }
+
+                    setButton(AlertDialog.BUTTON_NEUTRAL, "No") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    show()
+                }
+                //viewModel.updateAuditProjects(auditProjectItems)
             }
         }
         recyclerView.adapter = SimpleAuditItemAdapter(recyclerView, viewModel.auditProjectListItems, viewModel)

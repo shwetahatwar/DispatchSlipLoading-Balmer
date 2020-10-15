@@ -94,8 +94,8 @@
         android:id="@+id/audit_items_submit_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:imeOptions="actionDone"
         android:background="@color/colorAccent"
+        android:imeOptions="actionDone"
         android:text="Submit Items" />
 </LinearLayout>
 

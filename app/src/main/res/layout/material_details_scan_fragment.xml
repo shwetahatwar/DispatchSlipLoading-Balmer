@@ -31,7 +31,6 @@
                 android:hint="Material barcode"
                 android:imeOptions="actionDone"
                 android:inputType="textNoSuggestions"
-                android:maxLength="30"
                 android:paddingLeft="20dp"
                 android:paddingRight="20dp"
                 android:textColorHint="@android:color/darker_gray" />

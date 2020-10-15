@@ -75,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:paddingRight="5dp"
-                android:text="Count:"
+                android:text="Total Scanned Item:"
                 android:textAlignment="textEnd" />
 
             <TextView

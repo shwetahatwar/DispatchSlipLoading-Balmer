@@ -1,12 +1,14 @@
 package com.briot.balmerlawrie.implementor.ui.main
 
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
@@ -60,6 +62,9 @@ class AuditProjectsFragment : Fragment() {
         (this.activity as AppCompatActivity).setTitle("Audit Projects")
         viewModel.loadAuditProjects("In Progress")
         recyclerView.adapter = SimpleProjectListAdapter(recyclerView, viewModel.projects, viewModel)
+
+        val imm = activity!!.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view!!.windowToken, 0)
 
         viewModel.projects.observe(viewLifecycleOwner, Observer<Array<Project?>> {
             if (it != null) {

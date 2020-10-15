@@ -71,9 +71,13 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
 
         viewModel = ViewModelProvider(this).get(DispatchSlipLoadingViewModel::class.java)
 
+        countValue.text = viewModel.totalItemScannedCount.toString() + "/"+ viewModel.totalItemCount.toString()
         // viewModel.getUsers()
 
         (this.activity as AppCompatActivity).setTitle("Loading Dispatch Slip")
+
+        val imm = activity!!.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view!!.windowToken, 0)
 
         if (this.arguments != null) {
             viewModel.dispatchSlipId = this.arguments!!.getInt("loadingDispatchSlip_id")
@@ -100,7 +104,7 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                     loading_scanned_count.text = "0/0"
                 } else if (it != oldDispatchSlipItems) {
                     loading_dispatchSlipItems.adapter?.notifyDataSetChanged()
-                    countValue.text = viewModel.totalCount.toString()
+                    countValue.text = viewModel.totalItemScannedCount.toString() + "/"+ viewModel.totalItemCount.toString()
                     loading_scanned_count.text = viewModel.totalScannedItems.toString() + "/" + it.size.toString()
                 }
             }
@@ -212,6 +216,7 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                             })
                             show()
                         }
+                        loading_materialBarcode.requestFocus()
                     }
                 }
 
@@ -280,6 +285,7 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
 
         if (viewModel.isSameSerialNumber(productCode, batchCode, serialNumber)) {
             UiHelper.showErrorToast(this.activity as AppCompatActivity, "This barcode is already added, please add other item")
+            loading_materialBarcode.requestFocus()
         } else {
             // this.progress = UiHelper.showProgressIndicator(this.activity as AppCompatActivity, "Please wait")
             // prodeed to add the material in database

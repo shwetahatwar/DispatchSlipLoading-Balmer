@@ -78,6 +78,9 @@ class DispatchPickingListDetailsFragment : Fragment() {
             picking_dispatchListCustomer.text = viewModel.customer
         }
 
+        val imm = activity!!.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view!!.windowToken, 0)
+
         recyclerView.adapter = SimpleDispatchSlipPickingItemAdapter(recyclerView, viewModel.dispatchPickingItems, viewModel)
         viewModel.dispatchPickingItems.observe(viewLifecycleOwner, Observer<Array<DispatchSlipItem?>>{
             if (it != null) {

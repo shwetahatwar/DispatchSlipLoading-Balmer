@@ -52,6 +52,9 @@ class MaterialDetailsScanFragment : Fragment() {
 
         materialItemsList.adapter = MaterialItemsAdapter(this.context!!)
         materialItemsList.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this.context)
+
+        val imm = activity!!.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view!!.windowToken, 0)
 //        materialResultId.visibility = View.GONE
 
         viewModel.materialInwards.observe(this, Observer<MaterialInward> {
@@ -115,8 +118,14 @@ class MaterialDetailsScanFragment : Fragment() {
                 this.progress = UiHelper.showProgressIndicator(this.activity as AppCompatActivity, "Please wait")
 //                materialResultId.removeAllViews()
                 (materialItemsList.adapter as MaterialItemsAdapter).clear()
-                viewModel.loadMaterialItems(materialScanText.text.toString().trim())
 
+                val value = materialScanText.text.toString().trim()
+                var arguments  = value.split("#")
+                var barcodeToLoad = arguments[0]+"#"+arguments[1]+"#"+arguments[2]
+                viewModel.loadMaterialItems(barcodeToLoad)
+
+                materialScanText.requestFocus()
+                materialScanText.text?.clear()
                 handled = true
             }
             handled
@@ -126,8 +135,12 @@ class MaterialDetailsScanFragment : Fragment() {
             if (materialScanText.text != null && materialScanText.text!!.isNotEmpty()) {
                 this.progress = UiHelper.showProgressIndicator(this.activity as AppCompatActivity, "Please wait")
 //                materialResultId.removeAllViews()
+
                 (materialItemsList.adapter as MaterialItemsAdapter).clear()
-                viewModel.loadMaterialItems(materialScanText.text.toString())
+                val value = materialScanText.text.toString().trim()
+                var arguments  = value.split("#")
+                var barcodeToLoad = arguments[0]+"#"+arguments[1]+"#"+arguments[2]
+                viewModel.loadMaterialItems(barcodeToLoad)
             }
         }
     }

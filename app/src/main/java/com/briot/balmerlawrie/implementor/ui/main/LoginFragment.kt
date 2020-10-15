@@ -45,6 +45,9 @@ class LoginFragment : androidx.fragment.app.Fragment() {
 
         username.requestFocus()
 
+        val imm = activity!!.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view!!.windowToken, 0)
+
         viewModel.signInResponse.observe(this, Observer<SignInResponse> {
             UiHelper.hideProgress(this.progress)
             this.progress = null

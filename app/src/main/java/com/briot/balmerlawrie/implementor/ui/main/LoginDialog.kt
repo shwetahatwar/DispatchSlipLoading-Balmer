@@ -63,8 +63,8 @@ class LoginDialog: DialogFragment() {
             // Log.d(TAG, "while checking roleId --->"+  viewModel.signInResponse!!.value)
             this.progress = null
             // Log.d(TAG, "while checking roleId 1 --->"+ it.roleId)
-            if (it != null && it.roleId!!.toInt() == 1) {
-                if(it.roleId!!.toInt() == 1){
+            if (it != null && it.role!!.toString().toLowerCase() == "admin") {
+                if(it.role!!.toString().toLowerCase() == "admin"){
                     loginDialogListener?.onSuccessfulAdminLogin(productCode, batchCode, serialNumber)
                     // Log.d(TAG, "while checking roleId 2 --->"+ it.roleId)
                     dismiss()

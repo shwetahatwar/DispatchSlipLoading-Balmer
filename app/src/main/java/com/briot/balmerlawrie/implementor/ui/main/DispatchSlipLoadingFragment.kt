@@ -30,6 +30,7 @@ import kotlinx.android.synthetic.main.dispatch_slip_loading_fragment.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import com.briot.balmerlawrie.implementor.R
+import com.briot.balmerlawrie.implementor.repository.local.PrefRepository
 import com.briot.balmerlawrie.implementor.repository.remote.SignInResponse
 import kotlinx.android.synthetic.main.login_dialog_fragment.view.*
 
@@ -106,9 +107,10 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                     loading_dispatchSlipItems.adapter?.notifyDataSetChanged()
                     countValue.text = viewModel.totalItemScannedCount.toString() + "/"+ viewModel.totalItemCount.toString()
                     loading_scanned_count.text = viewModel.totalScannedItems.toString() + "/" + it.size.toString()
+                    loading_dispatchSlipItems.adapter?.notifyDataSetChanged()
                 }
+                loading_dispatchSlipItems.adapter?.notifyDataSetChanged()
             }
-
             loading_materialBarcode.text?.clear()
             loading_materialBarcode.requestFocus()
 
@@ -119,8 +121,6 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
             if (it == true) {
                 UiHelper.hideProgress(this.progress)
                 this.progress = null
-
-
                 if (viewModel.errorMessage != null) {
                     UiHelper.showErrorToast(this.activity as AppCompatActivity, viewModel.errorMessage)
                 } else {
@@ -170,6 +170,7 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                 keyboard.hideSoftInputFromWindow(activity?.currentFocus?.getWindowToken(), 0)
 
                 var value = loading_materialBarcode.text!!.toString().trim()
+
                 var arguments  = value.split("#")
                 var productCode = ""
                 var batchCode = ""
@@ -199,25 +200,38 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                         }
 
                     } else {
-                        UiHelper.showErrorToast(this.activity as AppCompatActivity, "Scanned material batch and material is not matching with dispatch slip!")
-                        // @dinesh gajjar: get admin permission flow
+                        if(viewModel.checkForFifoViolation(productCode)){
+                            var role: String = PrefRepository.singleInstance.getValueOrDefault(PrefConstants().ROLE_NAME, "")
+                            // @dinesh gajjar: get admin permission flow
 
-                        var thisObject = this
-                        AlertDialog.Builder(this.activity as AppCompatActivity, R.style.MyDialogTheme).create().apply {
-                            setTitle("Confirm")
-                            setMessage("Are you sure you want to load this material from different batch?")
-                            setButton(AlertDialog.BUTTON_NEUTRAL, "No", { dialog, _ -> dialog.dismiss() })
-                            setButton(AlertDialog.BUTTON_POSITIVE, "Yes", {
-                                dialog, _ -> dialog.dismiss()
-                                // open another dialog of credentials  to check  if user has valid admin role
-                                // call thisObject.addItemToList(productCode, batchCode, serialNumber)
-                                // thisObject.addItemToList(productCode, batchCode, serialNumber)
-                                thisObject.openLoginDialog(productCode, batchCode, serialNumber)
-                            })
-                            show()
+                            var thisObject = this
+                            AlertDialog.Builder(this.activity as AppCompatActivity, R.style.MyDialogTheme).create().apply {
+                                setTitle("Confirm")
+                                setMessage("Are you sure you want to load this material from different batch?")
+                                setButton(AlertDialog.BUTTON_NEUTRAL, "No", { dialog, _ -> dialog.dismiss() })
+                                setButton(AlertDialog.BUTTON_POSITIVE, "Yes", {
+                                    dialog, _ -> dialog.dismiss()
+                                    if (role.trim().toLowerCase() == "admin"){
+                                        GlobalScope.launch {
+                                            Log.d(TAG,"inside loading material barcode"+productCode)
+                                            viewModel.addMaterial(productCode, batchCode, serialNumber)
+                                        }
+                                    }else{
+                                        // open another dialog of credentials  to check  if user has valid admin role
+                                        // call thisObject.addItemToList(productCode, batchCode, serialNumber)
+                                        // thisObject.addItemToList(productCode, batchCode, serialNumber)
+                                        thisObject.openLoginDialog(productCode, batchCode, serialNumber)
+                                    }
+                                })
+                                show()
+                            }
+                        }else{
+                            UiHelper.showErrorToast(this.activity as AppCompatActivity, "Scanned material batch and material is not matching with dispatch slip!")
+
                         }
-                        loading_materialBarcode.requestFocus()
-                    }
+
+                    loading_materialBarcode.requestFocus()
+                }
                 }
 
                 loading_materialBarcode.text?.clear()
@@ -263,7 +277,6 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                 } else {
                     UiHelper.showErrorToast(this.activity as AppCompatActivity, "Please submit the list when in Network!")
                 }
-
                 loading_materialBarcode.text?.clear()
                 loading_materialBarcode.requestFocus()
             }
@@ -373,7 +386,7 @@ open class SimpleDispatchSlipLoadingItemAdapter(private val recyclerView: androi
         val dispatchSlipItem = dispatchSlipItems.value!![position]!!
         holder.itemView.setOnClickListener{
 
-            if (viewModel.dispatchSlipStatus.toString().toLowerCase().contains("complete")) {
+            if (viewModel.dispatchSlipStatus.toString().toLowerCase().contains("completed")) {
                 return@setOnClickListener
             }
 
@@ -418,6 +431,7 @@ open class SimpleDispatchSlipLoadingItemAdapter(private val recyclerView: androi
             listPopupWindow.show()
         }
     }
+
 
     override fun getItemCount(): Int {
         return dispatchSlipItems.value?.size ?: 0

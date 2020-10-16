@@ -139,8 +139,15 @@ class MaterialDetailsScanFragment : Fragment() {
                 (materialItemsList.adapter as MaterialItemsAdapter).clear()
                 val value = materialScanText.text.toString().trim()
                 var arguments  = value.split("#")
-                var barcodeToLoad = arguments[0]+"#"+arguments[1]+"#"+arguments[2]
-                viewModel.loadMaterialItems(barcodeToLoad)
+                if (arguments.size < 3 || arguments[0].length == 0 || arguments[1].length == 0 || arguments[2].length == 0) {
+                    UiHelper.showErrorToast(this.activity as AppCompatActivity, "Invalid barcode, please try again!")
+                    UiHelper.hideProgress(progress);
+                }else{
+                    var barcodeToLoad = arguments[0]+"#"+arguments[1]+"#"+arguments[2]
+                    viewModel.loadMaterialItems(barcodeToLoad)
+                }
+            }else{
+                UiHelper.showErrorToast(this.activity as AppCompatActivity, "Enter Barcode Material!")
             }
         }
     }

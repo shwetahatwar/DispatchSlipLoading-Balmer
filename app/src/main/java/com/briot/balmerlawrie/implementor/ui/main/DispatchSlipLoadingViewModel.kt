@@ -15,6 +15,7 @@ import com.briot.balmerlawrie.implementor.data.DispatchSlipLoadingListItem
 import com.briot.balmerlawrie.implementor.repository.local.PrefConstants
 import com.briot.balmerlawrie.implementor.repository.local.PrefRepository
 import com.briot.balmerlawrie.implementor.repository.remote.*
+import kotlinx.android.synthetic.main.dispatch_slip_loading_fragment.*
 import kotlinx.coroutines.*
 import retrofit2.HttpException
 import java.net.SocketException
@@ -37,7 +38,7 @@ class DispatchSlipLoadingViewModel : ViewModel() {
     val signInResponse: LiveData<SignInResponse> = MutableLiveData()
     val users: LiveData<userResponse?> = MutableLiveData()
 //    var allUsers: LiveData<Array<SignInResponse>> = MutableLiveData()
-
+   val totalScannedItem: LiveData<Number> = MutableLiveData()
     var userResponseData: (Array<userResponse?>) = arrayOf(null)
 
     // var allUsers: MutableLiveData<userResponse> = MutableLiveData()
@@ -57,7 +58,7 @@ class DispatchSlipLoadingViewModel : ViewModel() {
     private var responseDispatchLoadingItems: Array<DispatchSlipItem?> = arrayOf(null)
     // private lateinit var DispatchSlipItemToUpdate: DispatchSlipItem
     val DispatchSlipItemToUpdate: LiveData<Array<DispatchSlipItem?>> = MutableLiveData()
-
+    var dispatchSlipItemlist = ArrayList<DispatchSlipItem>()
     // MutableLiveData()
     val invalidDispatchloadingItems: Array<DispatchSlipItem?> = arrayOf(null)
     var errorMessage: String = ""
@@ -75,7 +76,6 @@ class DispatchSlipLoadingViewModel : ViewModel() {
         for (i in dispatchSlipItems){
             totalItemCount = totalItemCount!! + i?.numberOfPacks!!.toInt()
         }
-
 
         responseDispatchLoadingItems = dispatchSlipItems
         updatedListAsPerDatabase(responseDispatchLoadingItems)
@@ -180,8 +180,21 @@ class DispatchSlipLoadingViewModel : ViewModel() {
         return (result.size > 0)
     }
 
-    fun materialQuantityPickingCompleted(materialCode: String, batchNumber: String): Boolean {
+    fun checkForFifoViolation(materialCode: String):Boolean{
+        val result = responseDispatchLoadingItems.filter {
+            it?.materialCode.equals(materialCode)
+//            it?.batchNumber.equals(batchNumber)
+        }
+        if(result.size > 0){
+            return true
+        }else{
+            return false
+        }
+    }
 
+
+
+    fun materialQuantityPickingCompleted(materialCode: String, batchNumber: String): Boolean {
         val result = responseDispatchLoadingItems.filter {
             (it?.materialCode.equals(materialCode) && it?.batchNumber.equals(batchNumber))
         }

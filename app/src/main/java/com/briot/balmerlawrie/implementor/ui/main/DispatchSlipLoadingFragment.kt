@@ -106,6 +106,7 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                 } else if (it != oldDispatchSlipItems) {
                     loading_dispatchSlipItems.adapter?.notifyDataSetChanged()
                     countValue.text = viewModel.totalItemScannedCount.toString() + "/"+ viewModel.totalItemCount.toString()
+                   // countValue.text = viewModel.totalScannedItems.toString() + "/"+ viewModel.totalItemCount.toString()
                     loading_scanned_count.text = viewModel.totalScannedItems.toString() + "/" + it.size.toString()
                     loading_dispatchSlipItems.adapter?.notifyDataSetChanged()
                 }
@@ -184,6 +185,7 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                     serialNumber = value
 
                     if (viewModel.isMaterialBelongToSameGroup(productCode, batchCode)) {
+                        // viewModel.fifoCheck = true
                         if (viewModel.materialQuantityPickingCompleted(productCode, batchCode)) {
                             UiHelper.showErrorToast(this.activity as AppCompatActivity, "For given batch and material, quantity is already picked for dispatch!")
                         } else {
@@ -200,39 +202,46 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                         }
 
                     } else {
-                        val alreadyScan = viewModel.dispatchloadingItems.value?.filter {
-                            it?.materialCode == productCode  && it?.batchNumber == batchCode}
-                        if(alreadyScan?.size!! > 0) {
-                            UiHelper.showErrorToast(this.activity as AppCompatActivity,
-                                    "Barcode already scanned")
-                        } else if(viewModel.checkForFifoViolation(productCode)){
-                            var role: String = PrefRepository.singleInstance.getValueOrDefault(PrefConstants().ROLE_NAME, "")
-                            // @dinesh gajjar: get admin permission flow
+                        val checkExistingItem = viewModel.checkForFifoViolation(productCode)
+                        if (viewModel.materialQuantityPickingCompleted(productCode, batchCode)){
+                            UiHelper.showErrorToast(this.activity as AppCompatActivity, "For given batch and material, quantity is already picked for dispatch!")
+                        } else{
+                            val alreadyScan = viewModel.dispatchloadingItems.value?.filter {
+                                it?.materialCode == productCode  && it?.batchNumber == batchCode}
+                            if(alreadyScan?.size!! > 0) {
+                                UiHelper.showErrorToast(this.activity as AppCompatActivity,
+                                        "Barcode already scanned")
+                            } else if(checkExistingItem.size > 0){
+                                var role: String = PrefRepository.singleInstance.getValueOrDefault(PrefConstants().ROLE_NAME, "")
+                                // @dinesh gajjar: get admin permission flow
 
-                            var thisObject = this
-                            AlertDialog.Builder(this.activity as AppCompatActivity, R.style.MyDialogTheme).create().apply {
-                                setTitle("Confirm")
-                                setMessage("Are you sure you want to load this material from different batch?")
-                                setButton(AlertDialog.BUTTON_NEUTRAL, "No", { dialog, _ -> dialog.dismiss() })
-                                setButton(AlertDialog.BUTTON_POSITIVE, "Yes", {
-                                    dialog, _ -> dialog.dismiss()
-                                    if (role.trim().toLowerCase() == "admin"){
-                                        GlobalScope.launch {
-                                            Log.d(TAG,"inside loading material barcode"+productCode)
-                                            viewModel.addMaterial(productCode, batchCode, serialNumber)
+                                var thisObject = this
+                                AlertDialog.Builder(this.activity as AppCompatActivity, R.style.MyDialogTheme).create().apply {
+                                    setTitle("Confirm")
+                                    setMessage("Are you sure you want to load this material from different batch?")
+                                    setButton(AlertDialog.BUTTON_NEUTRAL, "No", { dialog, _ -> dialog.dismiss() })
+                                    setButton(AlertDialog.BUTTON_POSITIVE, "Yes", {
+                                        dialog, _ -> dialog.dismiss()
+                                        if (role.trim().toLowerCase() == "admin"){
+                                            GlobalScope.launch {
+                                                Log.d(TAG,"inside loading material barcode"+productCode)
+                                                // To add new entry to data base for FIFO material
+                                                // viewModel.fifoCheck = true
+                                                viewModel.addMaterial(productCode, batchCode, serialNumber)
+                                            }
+                                        }else{
+                                            // open another dialog of credentials  to check  if user has valid admin role
+                                            // call thisObject.addItemToList(productCode, batchCode, serialNumber)
+                                            // thisObject.addItemToList(productCode, batchCode, serialNumber)
+                                            // viewModel.fifoCheck = true
+                                            thisObject.openLoginDialog(productCode, batchCode, serialNumber)
                                         }
-                                    }else{
-                                        // open another dialog of credentials  to check  if user has valid admin role
-                                        // call thisObject.addItemToList(productCode, batchCode, serialNumber)
-                                        // thisObject.addItemToList(productCode, batchCode, serialNumber)
-                                        thisObject.openLoginDialog(productCode, batchCode, serialNumber)
-                                    }
-                                })
-                                show()
+                                    })
+                                    show()
+                                }
+                            }else{
+                                UiHelper.showErrorToast(this.activity as AppCompatActivity, "Scanned material batch and material is not matching with dispatch slip!")
                             }
-                        }else{
-                            UiHelper.showErrorToast(this.activity as AppCompatActivity, "Scanned material batch and material is not matching with dispatch slip!")
-
                         }
 
                     loading_materialBarcode.requestFocus()
@@ -299,7 +308,7 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
         loading_materialBarcode.requestFocus()
     }
 
-    fun addItemToList(productCode: String, batchCode:  String, serialNumber: String) {
+    fun addItemToList(productCode: String, batchCode:  String, serialNumber: String, fifoCheck:Boolean=false) {
 
         if (viewModel.isSameSerialNumber(productCode, batchCode, serialNumber)) {
             UiHelper.showErrorToast(this.activity as AppCompatActivity, "This barcode is already added, please add other item")
@@ -366,7 +375,8 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
 //            if(mDialogView.adminAuthenticated == true){
             if(LoginDialog.adminAuthenticated == true){
                 Log.d(TAG, "in side if to call additem to list-->")
-                addItemToList(productCode,batchCode,serialNumber)
+                addItemToList(productCode, batchCode, serialNumber)
+
             }
         })
     }

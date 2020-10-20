@@ -32,6 +32,7 @@ class DispatchSlipLoadingViewModel : ViewModel() {
     var userId: Int = 0
     var dispatchSlipTruckId: Int = 0
     var totalItemScannedCount: Int? = 0
+    var fifoCheck: Boolean = false
     var totalItemCount: Int? = 0
     var totalScannedItems: Int = 0
     var customer: String? = null
@@ -107,7 +108,7 @@ class DispatchSlipLoadingViewModel : ViewModel() {
     private fun updatedListAsPerDatabase(items: Array<DispatchSlipItem?>) {
 
         var dbDao = appDatabase.dispatchSlipLoadingItemDuo()
-        var dbItems = dbDao.getAllDispatchSlipItems(dispatchSlipId) //diff batch nunber items (dbItems)
+        var dbItems = dbDao.getAllDispatchSlipItems(dispatchSlipId) //diff batch number items (dbItems)
 //        var differentItems: Array<DispatchSlipItem?> = arrayOf(null)
         //server items
          var updatedItems: Array<DispatchSlipItem?> = items.clone()
@@ -120,7 +121,14 @@ class DispatchSlipLoadingViewModel : ViewModel() {
                         item.materialCode!!,
                         item.batchNumber!!
                 )
-                item.scannedPacks = count
+
+                // Get FIFO material count
+                var fifoCount = dbDao.getCountForMaterialCode(
+                        dispatchSlipId,
+                        item.materialCode!!,
+                        item.batchNumber!!
+                )
+                item.scannedPacks = count + fifoCount
                 if (item.scannedPacks.toInt() == item.numberOfPacks.toInt()) {
                     totalScannedItems += 1
                 }
@@ -159,6 +167,7 @@ class DispatchSlipLoadingViewModel : ViewModel() {
 //                    break;
 //                }
             }
+
         }
 //    }
 
@@ -180,23 +189,19 @@ class DispatchSlipLoadingViewModel : ViewModel() {
         return (result.size > 0)
     }
 
-    fun checkForFifoViolation(materialCode: String):Boolean{
+    fun checkForFifoViolation(materialCode: String): List<DispatchSlipItem?> {
         val result = responseDispatchLoadingItems.filter {
             it?.materialCode.equals(materialCode)
-//            it?.batchNumber.equals(batchNumber)
         }
-        if(result.size > 0){
-            return true
-        }else{
-            return false
-        }
+        return result
     }
 
 
 
     fun materialQuantityPickingCompleted(materialCode: String, batchNumber: String): Boolean {
         val result = responseDispatchLoadingItems.filter {
-            (it?.materialCode.equals(materialCode) && it?.batchNumber.equals(batchNumber))
+//            (it?.materialCode.equals(materialCode) && it?.batchNumber.equals(batchNumber))
+            (it?.materialCode.equals(materialCode))
         }
 
         var dbDao = appDatabase.dispatchSlipLoadingItemDuo()
@@ -208,7 +213,13 @@ class DispatchSlipLoadingViewModel : ViewModel() {
                         item.materialCode!!,
                         item.batchNumber!!
                 )
-                item.scannedPacks = count
+                // Get FIFO material count
+                var fifoCount = dbDao.getCountForMaterialCode(
+                        dispatchSlipId,
+                        item.materialCode!!,
+                        item.batchNumber!!
+                )
+                item.scannedPacks = count + fifoCount
                 if (item.scannedPacks.toInt() == item.numberOfPacks.toInt()) {
                     return true
                 } else {
@@ -343,8 +354,6 @@ class DispatchSlipLoadingViewModel : ViewModel() {
 
         RemoteRepository.singleInstance.postDispatchSlipLoadedMaterials(dispatchSlipId, dispatchSlipRequestObject,
                 this::handleDispatchLoadingItemsSubmissionResponse, this::handleDispatchLoadingItemsSubmissionError)
-
-
     }
 
     private fun handleDispatchLoadingItemsSubmissionResponse(dispatchSlipResponse: DispatchSlipItemResponse?) {

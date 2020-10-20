@@ -141,6 +141,8 @@ class MaterialDetailsScanFragment : Fragment() {
                 var arguments  = value.split("#")
                 if (arguments.size < 3 || arguments[0].length == 0 || arguments[1].length == 0 || arguments[2].length == 0) {
                     UiHelper.showErrorToast(this.activity as AppCompatActivity, "Invalid barcode, please try again!")
+                    materialScanText.text?.clear()
+                    materialScanText.requestFocus()
                     UiHelper.hideProgress(progress);
                 }else{
                     var barcodeToLoad = arguments[0]+"#"+arguments[1]+"#"+arguments[2]

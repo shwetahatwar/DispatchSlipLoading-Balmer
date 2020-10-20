@@ -200,7 +200,12 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                         }
 
                     } else {
-                        if(viewModel.checkForFifoViolation(productCode)){
+                        val alreadyScan = viewModel.dispatchloadingItems.value?.filter {
+                            it?.materialCode == productCode  && it?.batchNumber == batchCode}
+                        if(alreadyScan?.size!! > 0) {
+                            UiHelper.showErrorToast(this.activity as AppCompatActivity,
+                                    "Barcode already scanned")
+                        } else if(viewModel.checkForFifoViolation(productCode)){
                             var role: String = PrefRepository.singleInstance.getValueOrDefault(PrefConstants().ROLE_NAME, "")
                             // @dinesh gajjar: get admin permission flow
 
@@ -394,8 +399,8 @@ open class SimpleDispatchSlipLoadingItemAdapter(private val recyclerView: androi
             var dbItems = viewModel.getItemsOfSameBatchProductCode(dispatchSlipItem.batchNumber!!, dispatchSlipItem.materialCode!!)
             if (dbItems != null) {
                 for (dbItem in dbItems!!.iterator()) {
-                    var item = dbItem.batchCode + "#" + dbItem.productCode + "#" + dbItem.serialNumber
-                    list.add(item)
+                   // var item = dbItem.batchCode + "#" + dbItem.productCode + "#" + dbItem.serialNumber
+                    dbItem.serialNumber?.let { it1 -> list.add(it1) }
                 }
             }
 

@@ -183,12 +183,15 @@ class AuditProjectList : Fragment() {
 
         audit_items_submit_button.setOnClickListener {
             var auditProjectItems = emptyArray<auditProjectItem>()
+            this.progress = UiHelper.showProgressIndicator(this.activity as AppCompatActivity, "Please wait")
+
             for (items in viewModel.auditProjectListItems!!.value!!) {
                 //Making list to display and postcall
                 var auditProjectItem = auditProjectItem()
                 auditProjectItem.projectId = items!!.projectId
                 auditProjectItem.serialNumber = items!!.serialNumber
                 auditProjectItems = auditProjectItems + auditProjectItem
+
             }
             if (auditProjectItems.size == 0){
                 UiHelper.showErrorToast(this.activity as AppCompatActivity,
@@ -209,7 +212,9 @@ class AuditProjectList : Fragment() {
                 }
                 //viewModel.updateAuditProjects(auditProjectItems)
             }
+            UiHelper.hideProgress(this.progress)
         }
+
         recyclerView.adapter = SimpleAuditItemAdapter(recyclerView, viewModel.auditProjectListItems, viewModel)
     }
     open class SimpleAuditItemAdapter(private val recyclerView: androidx.recyclerview.widget.RecyclerView,

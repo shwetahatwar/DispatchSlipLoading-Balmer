@@ -50,6 +50,7 @@ class AuditProjectList : Fragment() {
     private var progress: Progress? = null
     lateinit var auditsubmit: Button
     var checkVariable = false;
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val rootView = inflater.inflate(R.layout.audit_project_list_fragment, container, false)
@@ -172,7 +173,6 @@ class AuditProjectList : Fragment() {
         };
         viewModel.itemSubmissionSuccessful.observe(viewLifecycleOwner, Observer<Boolean> {
             if (it == true) {
-                this.progress = UiHelper.showProgressIndicator(this.activity as AppCompatActivity,"Please Wait")
                 var thisObject = this
                 UiHelper.showSuccessToast(this.activity as AppCompatActivity,
                         "Updated successfully")
@@ -183,8 +183,8 @@ class AuditProjectList : Fragment() {
 
         audit_items_submit_button.setOnClickListener {
             var auditProjectItems = emptyArray<auditProjectItem>()
+            var thisObject = this
             this.progress = UiHelper.showProgressIndicator(this.activity as AppCompatActivity, "Please wait")
-
             for (items in viewModel.auditProjectListItems!!.value!!) {
                 //Making list to display and postcall
                 var auditProjectItem = auditProjectItem()
@@ -195,7 +195,8 @@ class AuditProjectList : Fragment() {
             }
             if (auditProjectItems.size == 0){
                 UiHelper.showErrorToast(this.activity as AppCompatActivity,
-                        "Items not availabel")
+                        "Items not available")
+                UiHelper.hideProgress(this.progress)
             } else {
                 AlertDialog.Builder(this.activity as AppCompatActivity, R.style.MyDialogTheme).create().apply {
                     setTitle(" Confirm")
@@ -207,12 +208,14 @@ class AuditProjectList : Fragment() {
 
                     setButton(AlertDialog.BUTTON_NEUTRAL, "No") { dialog, _ ->
                         dialog.dismiss()
+                        UiHelper.hideProgress(thisObject.progress)
                     }
                     show()
+
                 }
                 //viewModel.updateAuditProjects(auditProjectItems)
             }
-            UiHelper.hideProgress(this.progress)
+
         }
 
         recyclerView.adapter = SimpleAuditItemAdapter(recyclerView, viewModel.auditProjectListItems, viewModel)

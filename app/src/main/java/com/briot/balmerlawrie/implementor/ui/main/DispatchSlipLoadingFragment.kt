@@ -202,16 +202,19 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                         }
 
                     } else {
-                        val checkExistingItem = viewModel.checkForFifoViolation(productCode)
+//                        val checkExistingItem = viewModel.checkForFifoViolation(productCode)
+                        var scannedItemOfBatchMaterial = viewModel.getItemsOfSameBatchProductCode(batchCode,
+                                productCode)
                         if (viewModel.materialQuantityPickingCompleted(productCode, batchCode)){
                             UiHelper.showErrorToast(this.activity as AppCompatActivity, "For given batch and material, quantity is already picked for dispatch!")
                         } else{
-                            val alreadyScan = viewModel.dispatchloadingItems.value?.filter {
-                                it?.materialCode == productCode  && it?.batchNumber == batchCode}
+                            // check for serial number is already scanned or not
+                            val alreadyScan = scannedItemOfBatchMaterial.filter {
+                                it?.serialNumber == value}
                             if(alreadyScan?.size!! > 0) {
                                 UiHelper.showErrorToast(this.activity as AppCompatActivity,
-                                        "Barcode already scanned")
-                            } else if(checkExistingItem.size > 0){
+                                        "Barcode already scanned, check serial number")
+                            } else if(viewModel.checkForFifoViolation(productCode)){
                                 var role: String = PrefRepository.singleInstance.getValueOrDefault(PrefConstants().ROLE_NAME, "")
                                 // @dinesh gajjar: get admin permission flow
 
@@ -225,15 +228,11 @@ class DispatchSlipLoadingFragment : Fragment(), LoginDialogListener {
                                         if (role.trim().toLowerCase() == "admin"){
                                             GlobalScope.launch {
                                                 Log.d(TAG,"inside loading material barcode"+productCode)
-                                                // To add new entry to data base for FIFO material
-                                                // viewModel.fifoCheck = true
                                                 viewModel.addMaterial(productCode, batchCode, serialNumber)
                                             }
                                         }else{
                                             // open another dialog of credentials  to check  if user has valid admin role
-                                            // call thisObject.addItemToList(productCode, batchCode, serialNumber)
                                             // thisObject.addItemToList(productCode, batchCode, serialNumber)
-                                            // viewModel.fifoCheck = true
                                             thisObject.openLoginDialog(productCode, batchCode, serialNumber)
                                         }
                                     })
@@ -404,15 +403,17 @@ open class SimpleDispatchSlipLoadingItemAdapter(private val recyclerView: androi
             if (viewModel.dispatchSlipStatus.toString().toLowerCase().contains("completed")) {
                 return@setOnClickListener
             }
-
             val list = mutableListOf<String>()
-            var dbItems = viewModel.getItemsOfSameBatchProductCode(dispatchSlipItem.batchNumber!!, dispatchSlipItem.materialCode!!)
-            if (dbItems != null) {
-                for (dbItem in dbItems!!.iterator()) {
-                   // var item = dbItem.batchCode + "#" + dbItem.productCode + "#" + dbItem.serialNumber
-                    dbItem.serialNumber?.let { it1 -> list.add(it1) }
-                }
+            if (dispatchSlipItem.serialNumber != null){
+                list.add(dispatchSlipItem.serialNumber!!)
             }
+            var dbItems = viewModel.getItemsOfSameBatchProductCode(dispatchSlipItem.batchNumber!!, dispatchSlipItem.materialCode!!)
+//            if (dbItems != null) {
+//                for (dbItem in dbItems!!.iterator()) {
+//                   // var item = dbItem.batchCode + "#" + dbItem.productCode + "#" + dbItem.serialNumber
+//                    dbItem.serialNumber?.let { it1 -> list.add(it1) }
+//                }
+//            }
 
             val listPopupWindow = ListPopupWindow(this.recyclerView.context)
             listPopupWindow.setAnchorView(it)

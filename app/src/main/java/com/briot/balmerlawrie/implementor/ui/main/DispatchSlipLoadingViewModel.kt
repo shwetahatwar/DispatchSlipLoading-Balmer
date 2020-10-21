@@ -158,6 +158,7 @@ class DispatchSlipLoadingViewModel : ViewModel() {
                     item.scannedPacks = 1
 //                item.batchNumber = dbitem.batchCode
                     item.batchNumber = arguments[1]
+                    item.serialNumber = dbitem.serialNumber
                     item.materialCode = dbitem.productCode
                     item.dispatchSlipId = dbitem.dispatchSlipId
                     item.materialGenericName = dbitem.materialGenericName
@@ -189,11 +190,15 @@ class DispatchSlipLoadingViewModel : ViewModel() {
         return (result.size > 0)
     }
 
-    fun checkForFifoViolation(materialCode: String): List<DispatchSlipItem?> {
+    fun checkForFifoViolation(materialCode: String): Boolean {
         val result = responseDispatchLoadingItems.filter {
             it?.materialCode.equals(materialCode)
         }
-        return result
+        if (result.size > 0) {
+            return true
+        } else {
+            return false
+        }
     }
 
 
@@ -310,8 +315,6 @@ class DispatchSlipLoadingViewModel : ViewModel() {
 
         return false
     }
-
-
 
     suspend fun handleSubmitLoadingList() {
         var dispatchSlipRequestObject = DispatchSlipRequest()

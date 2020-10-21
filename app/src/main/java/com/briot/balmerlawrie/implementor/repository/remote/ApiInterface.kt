@@ -142,6 +142,8 @@ class DispatchSlipItem {
     var createdAt: String? = null
     var updatdAt: String? = null
     var scannedPacks: Number = 0
+    var serialNumber: String? = null
+
 }
 
 class DispatchSlipItemRequest {

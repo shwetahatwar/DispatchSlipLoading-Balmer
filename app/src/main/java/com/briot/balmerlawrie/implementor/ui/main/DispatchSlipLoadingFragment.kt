@@ -404,16 +404,18 @@ open class SimpleDispatchSlipLoadingItemAdapter(private val recyclerView: androi
                 return@setOnClickListener
             }
             val list = mutableListOf<String>()
+            var dbItems = viewModel.getItemsOfSameBatchProductCode(dispatchSlipItem.batchNumber!!, dispatchSlipItem.materialCode!!)
+
             if (dispatchSlipItem.serialNumber != null){
                 list.add(dispatchSlipItem.serialNumber!!)
+            } else {
+                if (dbItems != null) {
+                for (dbItem in dbItems!!.iterator()) {
+                   // var item = dbItem.batchCode + "#" + dbItem.productCode + "#" + dbItem.serialNumber
+                    dbItem.serialNumber?.let { it1 -> list.add(it1) }
+                    }
+                }
             }
-            var dbItems = viewModel.getItemsOfSameBatchProductCode(dispatchSlipItem.batchNumber!!, dispatchSlipItem.materialCode!!)
-//            if (dbItems != null) {
-//                for (dbItem in dbItems!!.iterator()) {
-//                   // var item = dbItem.batchCode + "#" + dbItem.productCode + "#" + dbItem.serialNumber
-//                    dbItem.serialNumber?.let { it1 -> list.add(it1) }
-//                }
-//            }
 
             val listPopupWindow = ListPopupWindow(this.recyclerView.context)
             listPopupWindow.setAnchorView(it)
@@ -484,7 +486,7 @@ open class SimpleDispatchSlipLoadingItemAdapter(private val recyclerView: androi
                 linearLayout.setBackgroundColor(PrefConstants().lightGreenColor)
             }
             if (dispatchSlipItem.materialCode == viewModel.productCode && dispatchSlipItem.batchNumber == viewModel.batchCode){
-               linearLayout.setBackgroundColor(PrefConstants().lightYellowColor)
+               linearLayout.setBackgroundColor(PrefConstants().lightGreenColor)
             }
         }
     }

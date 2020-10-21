@@ -184,7 +184,6 @@ class AuditProjectList : Fragment() {
         audit_items_submit_button.setOnClickListener {
             var auditProjectItems = emptyArray<auditProjectItem>()
             var thisObject = this
-            this.progress = UiHelper.showProgressIndicator(this.activity as AppCompatActivity, "Please wait")
             for (items in viewModel.auditProjectListItems!!.value!!) {
                 //Making list to display and postcall
                 var auditProjectItem = auditProjectItem()
@@ -203,6 +202,7 @@ class AuditProjectList : Fragment() {
                     setMessage("Are you sure you want to submit scanned materials.")
                     setButton(AlertDialog.BUTTON_POSITIVE, "Yes") { dialog, _ ->
                         dialog.dismiss()
+                        thisObject.progress = UiHelper.showProgressIndicator(this.context, "Please wait")
                         viewModel.updateAuditProjects(auditProjectItems)
                     }
 
